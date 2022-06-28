@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-import Note from './components/Note';
-import Notification from './components/Notification';
-import Footer from './components/Footer';
+import Note from "./components/Note";
+import Notification from "./components/Notification";
+import Footer from "./components/Footer";
 
-import notesService from './services/notes';
+import notesService from "./services/notes";
 
 function App() {
   const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState('');
+  const [newNote, setNewNote] = useState("");
   const [showAll, setShowAll] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -23,7 +23,7 @@ function App() {
       });
   }, []);
 
-  function addNote (event) {
+  function addNote(event) {
     event.preventDefault();
 
     const noteObject = {
@@ -36,7 +36,7 @@ function App() {
       .create(noteObject)
       .then((addedNote) => {
         setNotes(notes.concat(addedNote));
-        setNewNote('');
+        setNewNote("");
       })
       .catch((error) => {
         console.log(error);
@@ -44,13 +44,13 @@ function App() {
   }
 
   function toggleImportance(id) {
-    const note = notes.find((note) => note.id === id);
+    const note = notes.find((n) => n.id === id);
     const changedNote = { ...note, important: !note.important };
 
     notesService
       .update(id, changedNote)
       .then((updNote) => {
-        const updatedNotes = notes.map((note) => (note.id === id) ? updNote : note);
+        const updatedNotes = notes.map((n) => (n.id === id ? updNote : n));
         setNotes(updatedNotes);
       })
       .catch((error) => {
@@ -67,15 +67,24 @@ function App() {
       <h1>Notes</h1>
       <Notification message={errorMessage} />
       <div>
-        <button onClick={() => setShowAll(!showAll)}>
-          show {showAll ? 'important' : 'all'}
+        <button type="button" onClick={() => setShowAll(!showAll)}>
+          show {showAll ? "important" : "all"}
         </button>
       </div>
       <ul>
-        {notesToShow.map((note) => <Note key={note.id} note={note} toggleImportance={() => toggleImportance(note.id)} />)}
+        {notesToShow.map((note) => (
+          <Note
+            key={note.id}
+            note={note}
+            toggleImportance={() => toggleImportance(note.id)}
+          />
+        ))}
       </ul>
       <form onSubmit={addNote}>
-        <input value={newNote} onChange={({ target }) => setNewNote(target.value)}/>
+        <input
+          value={newNote}
+          onChange={({ target }) => setNewNote(target.value)}
+        />
         <button type="submit">save</button>
       </form>
       <Footer />
