@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from "axios";
 
-const baseUrl = 'http://localhost:3001/notes';
+const baseUrl = "http://localhost:3001/api/notes";
 
 function getAll() {
   const request = axios.get(baseUrl);
@@ -8,11 +8,11 @@ function getAll() {
 }
 
 function create(newObject) {
-  const request = axios.post(baseUrl, newObject)
+  const request = axios.post(baseUrl, newObject);
   return request.then((response) => response.data);
 }
 
-function update (id, newObject) {
+function update(id, newObject) {
   const request = axios.put(`${baseUrl}/${id}`, newObject);
   return request.then((response) => response.data);
 }
