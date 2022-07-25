@@ -1,16 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
-import Note from "./components/Note";
-import Notification from "./components/Notification";
-import Footer from "./components/Footer";
+import Note from './components/Note';
+import Notification from './components/Notification';
+import Footer from './components/Footer';
 
-import notesService from "./services/notes";
+import notesService from './services/notes';
+import loginService from './services/login';
 
 function App() {
   const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState("");
+  const [newNote, setNewNote] = useState('');
   const [showAll, setShowAll] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     notesService
@@ -21,6 +25,15 @@ function App() {
       .catch((error) => {
         console.log(error);
       });
+  }, []);
+
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedNoteAppUser');
+    if (loggedUserJSON) {
+      const loggedUser = JSON.parse(loggedUserJSON);
+      setUser(loggedUser);
+      notesService.setToken(loggedUser.token);
+    }
   }, []);
 
   function addNote(event) {
@@ -36,7 +49,7 @@ function App() {
       .create(noteObject)
       .then((addedNote) => {
         setNotes(notes.concat(addedNote));
-        setNewNote("");
+        setNewNote('');
       })
       .catch((error) => {
         console.log(error);
@@ -58,17 +71,90 @@ function App() {
       });
   }
 
+  async function handleLogin(event) {
+    event.preventDefault();
+
+    try {
+      const user = await loginService.login({
+        username,
+        password,
+      });
+      setUser(user);
+      notesService.setToken(user.token);
+      window.localStorage.setItem('loggedNoteAppUser', JSON.stringify(user));
+      setUsername('');
+      setPassword('');
+    } catch (error) {
+      setErrorMessage('Wrong credentials');
+      setTimeout(() => setErrorMessage(null), 5000);
+      console.log(error);
+    }
+  }
+
+  function handleLogout() {
+    notesService.setToken(null);
+    setUser(null);
+    window.localStorage.removeItem('loggedNoteAppUser');
+  }
+
   const notesToShow = showAll
     ? notes
     : notes.filter((note) => note.important === true);
+
+  function loginForm() {
+    return (
+      <form onSubmit={handleLogin}>
+        <div>
+          username
+          <input
+            type="text"
+            value={username}
+            name="Username"
+            onChange={({ target }) => setUsername(target.value)}
+          />
+        </div>
+        <div>
+          password
+          <input
+            type="text"
+            value={password}
+            name="Password"
+            onChange={({ target }) => setPassword(target.value)}
+          />
+        </div>
+        <button type="submit">login</button>
+      </form>
+    );
+  }
+
+  function noteForm() {
+    return (
+      <form onSubmit={addNote}>
+        <input
+          value={newNote}
+          onChange={({ target }) => setNewNote(target.value)}
+        />
+        <button type="submit">save</button>
+      </form>
+    );
+  }
 
   return (
     <div>
       <h1>Notes</h1>
       <Notification message={errorMessage} />
+      {user === null ? (
+        loginForm()
+      ) : (
+        <div>
+          <p>{user.name} logged-in</p>
+          <button onClick={handleLogout}>logout</button>
+          {noteForm()}
+        </div>
+      )}
       <div>
         <button type="button" onClick={() => setShowAll(!showAll)}>
-          show {showAll ? "important" : "all"}
+          show {showAll ? 'important' : 'all'}
         </button>
       </div>
       <ul>
@@ -80,13 +166,6 @@ function App() {
           />
         ))}
       </ul>
-      <form onSubmit={addNote}>
-        <input
-          value={newNote}
-          onChange={({ target }) => setNewNote(target.value)}
-        />
-        <button type="submit">save</button>
-      </form>
       <Footer />
     </div>
   );
