@@ -14,7 +14,7 @@ function TogglableFunction({ children, buttonLabel }, refs) {
 
   function showWhenVisible() {
     return (
-      <div>
+      <div className="togglableConent">
         {children}
         <button type="button" onClick={toggleVisibility}>
           cancel
